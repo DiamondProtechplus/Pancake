@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Love Gift</title>
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#ffe4ec; /* soft pink */
+      --bg2:#fff;
+      --primary:#ff5a8d;
+      --primary-600:#e64f7d;
+      --accent:#ffd166;
+      --ok:#22c55e;
+      --danger:#ff4d4f;
+      --text:#2d2a2e;
+      --muted:#7a737d;
+      --glass:rgba(255,255,255,.6);
+      --shadow:0 10px 30px rgba(0,0,0,.12);
+      --radius:22px;
+    }
+    
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Mitr', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, "Noto Sans Thai", sans-serif; color:var(--text);
+      background: linear-gradient(180deg, #ffd1dc 0%, #fff 70%);
+      overflow-x:hidden;
+    }
+    /* Floating hearts background */
+    .bg-hearts{
+      position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0;
+    }
+    .heart{ position:absolute; width:18px; height:18px; transform:rotate(45deg); background:rgba(255,90,141,.18); animation: floatUp linear infinite; border-radius:4px; }
+    .heart::before,.heart::after{ content:""; position:absolute; width:18px; height:18px; background:inherit; border-radius:50%; }
+    .heart::before{ left:-9px; }
+    .heart::after{ top:-9px; }
+    @keyframes floatUp{ from{ transform:translateY(0) rotate(45deg); opacity:.9 } to{ transform:translateY(-120vh) rotate(45deg); opacity:0 } }
+
+    .wrap{ position:relative; z-index:1; min-height:100%; display:grid; place-items:center; padding:42px 16px; }
+
+    .card{ width:min(720px, 92vw); background:var(--glass); backdrop-filter: blur(14px) saturate(120%); -webkit-backdrop-filter: blur(14px) saturate(120%); border-radius: var(--radius); box-shadow: var(--shadow); border:1px solid rgba(255,255,255,.5); }
+
+    .card .header{ padding:26px 28px 0; text-align:center; }
+    .card .header h1{ margin:0; font-weight:600; letter-spacing:.2px }
+    .card .body{ padding:26px 28px 28px; }
+
+    /* --- Page 1 (Login) --- */
+    .page{ display:none; }
+    .page.active{ display:block; }
+
+    .form{ display:grid; gap:14px; }
+    .input{
+      width:100%; padding:14px 16px; border-radius:14px; border:1.5px solid rgba(0,0,0,.08); background:#fff; font-size:16px; outline:none; transition:.2s border, .2s box-shadow;
+    }
+    .input:focus{ border-color:var(--primary); box-shadow:0 0 0 4px rgba(255,90,141,.15) }
+    .input.error{ border-color: var(--danger)!important; box-shadow:0 0 0 4px rgba(255,77,79,.15)!important }
+
+    .btn{ appearance:none; border:none; background:var(--primary); color:#fff; padding:14px 18px; border-radius:16px; font-weight:600; font-size:16px; cursor:pointer; transition:.15s transform, .2s background; box-shadow:0 8px 16px rgba(255,90,141,.35) }
+    .btn:hover{ background:var(--primary-600) }
+    .btn:active{ transform: translateY(1px) }
+
+    .help{ color:var(--muted); font-size:14px }
+    .error-text{ color:var(--danger); font-size:14px; min-height:20px }
+
+    .shake{ animation:shake .4s }
+    @keyframes shake { 10%, 90% { transform: translateX(-1px) } 20%, 80% { transform: translateX(2px) } 30%, 50%, 70% { transform: translateX(-4px) } 40%, 60% { transform: translateX(4px) } }
+
+    /* --- Page 2 (Gift) --- */
+    .title{ text-align:center; font-size:28px; font-weight:600; margin:0 0 6px }
+    .subtitle{ text-align:center; color:var(--muted); margin:0 0 18px }
+
+    .gift-area{ display:grid; place-items:center; padding:12px 0 8px }
+
+    /* Countdown overlay */
+.countdown-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index:3 }
+.countdown-overlay.show{ display:flex }
+.count-box{ display:flex; flex-direction:column; align-items:center; gap:12px; background:rgba(255,255,255,.92); padding:22px 26px; border-radius:16px; box-shadow: var(--shadow); min-width:240px }
+.count-box .spinner{ width:64px; height:64px; border:6px solid rgba(0,0,0,.08); border-top-color: var(--primary); border-radius:50%; animation: spin 1s linear infinite }
+.count-box .count-text{ font-size:18px; color:var(--text) }
+.count-box .count-text span{ font-weight:700; font-size:24px; color:var(--primary-600) }
+@keyframes spin { to { transform: rotate(360deg) } }
+/* Confetti canvas */
+#confetti{ position:fixed; inset:0; pointer-events:none; z-index:2 }
+
+    .gift{ position:relative; width:180px; height:160px; cursor:pointer; filter: drop-shadow(0 12px 18px rgba(0,0,0,.14)); }
+    .gift .box{ position:absolute; bottom:0; width:100%; height:68%; background:linear-gradient(180deg,#ff789f,#ff5a8d); border-radius:12px; }
+    .gift .stripe{ position:absolute; left:50%; transform:translateX(-50%); width:24px; height:100%; background:#ffd166; }
+    .gift .lid{ position:absolute; top:10px; left:50%; transform:translateX(-50%); width:110%; height:38%; background:linear-gradient(180deg,#ff6f98,#ff4f83); border-radius:14px; transform-origin:bottom center; transition: .5s ease-in-out transform; }
+    .gift .ribbon{ position:absolute; top:-22px; left:50%; transform:translateX(-50%); width:60px; height:60px; border-radius:50%; background:#ffd166; box-shadow: 40px 0 0 #ffd166, -40px 0 0 #ffd166; }
+    .gift.open .lid{ position:absolute; top:-103px; transform:  translateX(-0%) rotateX(160deg) }
+    
+
+    .tap-note{ margin-top:12px; color:var(--muted); font-size:14px }
+
+    .gallery{ display:none; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:14px; margin-top:22px }
+    .gallery.show{ display:grid }
+
+    .media-card{ background:#fff; border-radius:16px; overflow:hidden; box-shadow: var(--shadow); border:1px solid rgba(0,0,0,.06); }
+    .media-card figure{ margin:0 }
+    .media-card img, .media-card video{ display:block; width:100%; height:260px; object-fit:cover; background:#f6f6f6 }
+    .caption{ padding:10px 12px 12px; font-size:15px; color:var(--text) }
+
+    .badge{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; background:#fff; border:1px solid rgba(0,0,0,.06); color:var(--muted); font-size:13px }
+
+    .controls{ display:flex; gap:10px; justify-content:center; margin-top:12px }
+
+    .mutebtn{ position:absolute; right:8px; top:8px; background:rgba(0,0,0,.55); color:#fff; border:none; border-radius:999px; padding:8px 10px; cursor:pointer; font-size:12px }
+
+    /* Confetti canvas */
+    #confetti{ position:fixed; inset:0; pointer-events:none; z-index:2 }
+
+    /* Footer */
+    .footer{ text-align:center; color:var(--muted); font-size:12px; margin-top:18px }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="bg-hearts" id="bgHearts"></div>
+<div class="countdown-overlay" id="countOverlay" aria-hidden="true">
+  <div class="count-box">
+    <div class="spinner"></div>
+    <div class="count-text">กำลังเปิดกล่องใน <span id="countNum">10</span> วินาที…</div>
+  </div>
+</div>
+
+  <div class="wrap">
+    <div class="card page active" id="page1">
+      <div class="header">
+        <h1>เข้าสู่ระบบฐานข้อมูล Chachin&Pancake</h1>
+      </div>
+      <div class="body">
+        <div class="form" id="loginForm">
+          <input class="input" id="user" placeholder="User" autocomplete="off" />
+          <input class="input" id="pass" placeholder="Password" type="password" />
+          <div class="error-text" id="errorText"></div>
+          <button class="btn" id="loginBtn">Login</button>
+          <div class="help">(Hits ; User : Name / Pass : 🎂🥞)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card page" id="page2" aria-hidden="true">
+      <div class="header">
+        <h2 class="title">สำหรับแพนเค้ก ❤️</h2>
+        <p class="subtitle">กล่องของขวัญนี้เค้าตั้งใจทำมากๆเลยนะ <3 </p>
+      </div>
+      <div class="body">
+        <div class="gift-area">
+          <div class="gift" id="gift">
+            <div class="lid"></div>
+            <div class="ribbon"></div>
+            <div class="box"></div>
+            <div class="stripe"></div>
+          </div>
+          <div class="tap-note">แตะกล่องเพื่อเปิด 🎁</div>
+          <div class="controls">
+            <span class="badge">Ed Sheeran - Photograph ♪</span>
+          </div>
+        </div>
+
+        <section class="gallery" id="gallery"></section>
+
+        <audio id="bgm" preload="auto" loop></audio>
+      </div>
+<div class="footer">ขอสงวนสิทธิ์ ไดม่อนเดฟ🛡️</div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== CONFIG (แก้ไขค่านี้ได้) ====================
+    const AUTH = { username: '1', password: '1' };
+    const MUSIC_URL = 'assets/song.mp3'; // เพลงที่จะเล่นอัตโนมัติใน Page 2
+    // รายการสื่อ (เพิ่มได้อิสระ): type = 'image' | 'video'
+    const MEDIA = [
+      { type: 'image', src: 'assets/photo1.png', caption: 'มีเธอมาติวให้แล้วเว้ยยย 🩷' },
+      { type: 'video', src: 'assets/video1.mov', caption: 'คลิปที่ชินถ่ายยย (เปิดเสียงได้ที่ปุ่มมุมขวาบน) 🎬' },
+      { type: 'image', src: 'assets/photo2.jpeg', caption: 'เอ๊ะๆ ฟิวแอบถ่ายปะะะ 😅' },
+            { type: 'video', src: 'assets/video2.mov', caption: 'คลิปที่ชินถ่ายอะเกนนนน (เปิดเสียงได้ที่ปุ่มมุมขวาบน) 🎬' },
+      { type: 'image', src: 'assets/photo3.jpeg', caption: 'แว่นมานี่มา 😎' },
+      { type: 'image', src: 'assets/photo4.png', caption: 'เขามีใจรึมีเน็ตวะ ⁉️' },
+      { type: 'image', src: 'assets/photo5.jpeg', caption: 'เล่นมายคราฟรอบนี้ โคตรสนุกเลยยย😝' },
+      { type: 'image', src: 'assets/photo6.png', caption: 'ชอบเวลาที่เธอยิ้มแล้วเป็นตาสระ  ิ ิ ิ ิ ิ ิ ิ ิ' },
+      { type: 'image', src: 'assets/photo7.png', caption: 'อันนี้เธอไปจัดบูตตตต' },
+      { type: 'image', src: 'assets/photo8.png', caption: 'แฟนใคร ทำไมสวยจังง' },
+      { type: 'image', src: 'assets/photo9.png', caption: 'ด้านซ้ายตัวเหี้ยไร' },
+      { type: 'image', src: 'assets/photo10.jpeg', caption: 'Eye And Eye 👁️' },
+            { type: 'image', src: 'assets/photo11.png', caption: 'Miss u มาทีเดียว ห้องแทบแตก' },
+            { type: 'image', src: 'assets/photo12.png', caption: 'Miss You Too Naa' },
+
+                 
+     ];
+    // ================================================================
+
+    // Hearts background generator
+    const bgHearts = document.getElementById('bgHearts');
+    const makeHearts = () => {
+      for(let i=0;i<18;i++){
+        const h=document.createElement('div'); h.className='heart';
+        const size = 10 + Math.random()*20; h.style.width=h.style.height=size+'px';
+        h.style.left = Math.random()*100+'%';
+        h.style.bottom = '-40px';
+        h.style.animationDuration = (8+Math.random()*8)+'s';
+        h.style.animationDelay = (Math.random()*8)+'s';
+        h.style.background = `rgba(255,90,141,${0.10+Math.random()*0.28})`;
+        bgHearts.appendChild(h);
+      }
+    };
+    makeHearts();
+
+    // Elements
+    const page1 = document.getElementById('page1');
+    const page2 = document.getElementById('page2');
+    const loginBtn = document.getElementById('loginBtn');
+    const userInput = document.getElementById('user');
+    const passInput = document.getElementById('pass');
+    const errorText = document.getElementById('errorText');
+    const gift = document.getElementById('gift');
+    const gallery = document.getElementById('gallery');
+    const bgm = document.getElementById('bgm');
+    const countOverlay = document.getElementById('countOverlay');
+    const countNum = document.getElementById('countNum');
+let opened = false;
+let counting = false;
+let countdownInterval = null;
+
+
+    // Simple login (ฝั่ง client เท่านั้น)
+    function validate(){
+      const u = userInput.value.trim();
+      const p = passInput.value.trim();
+      const ok = (u === AUTH.username && p === AUTH.password);
+      if(!ok){
+        [userInput, passInput].forEach(el=>el.classList.add('error'));
+        errorText.textContent = 'User หรือ Password ไม่ถูกต้อง 😿';
+        page1.classList.remove('shake'); void page1.offsetWidth; page1.classList.add('shake');
+      }
+      return ok;
+    }
+
+    function showPage2(){
+      page1.classList.remove('active');
+      page2.classList.add('active');
+      page2.setAttribute('aria-hidden','false');
+
+      // Set music and attempt autoplay (triggered by user click -> login)
+      bgm.src = MUSIC_URL;
+      playMusicSafely();
+    }
+
+    async function playMusicSafely(){
+      try{ await bgm.play(); }
+      catch(e){
+        // In case some browsers still block, try again on next gesture (open gift)
+        console.log('Autoplay blocked until further gesture.');
+      }
+    }
+
+    loginBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      // clear styles
+      [userInput, passInput].forEach(el=>el.classList.remove('error'));
+      errorText.textContent = '';
+
+      if(validate()){
+        showPage2();
+      }
+    });
+
+    // Build gallery from MEDIA config
+    function renderGallery(){
+      gallery.innerHTML = '';
+      MEDIA.forEach(item=>{
+        const card = document.createElement('article');
+        card.className = 'media-card';
+        const fig = document.createElement('figure');
+        let mediaEl;
+        if(item.type==='image'){
+          mediaEl = document.createElement('img');
+          mediaEl.src = item.src; mediaEl.alt = item.caption || 'memory';
+        } else {
+          mediaEl = document.createElement('div');
+          mediaEl.style.position='relative';
+          mediaEl.innerHTML = `<video muted autoplay loop playsinline src="${item.src}"></video>`;
+          const btn = document.createElement('button');
+          btn.className='mutebtn'; btn.textContent='🔇';
+          btn.addEventListener('click', ()=>{
+            const v = mediaEl.querySelector('video');
+            v.muted = !v.muted; btn.textContent = v.muted ? '🔇' : '🔊';
+            if(!v.paused) return; // if user muted/unmuted while paused
+            v.play().catch(()=>{});
+          });
+          mediaEl.appendChild(btn);
+        }
+        fig.appendChild(mediaEl);
+        const cap = document.createElement('figcaption');
+        cap.className='caption'; cap.textContent = item.caption || '';
+        card.appendChild(fig); card.appendChild(cap);
+        gallery.appendChild(card);
+      });
+    }
+
+    // Gift open -> reveal gallery + confetti + ensure music plays
+gift.addEventListener('click', ()=>{
+  // Start 7s countdown with loader before opening the gift
+  if(opened || counting) return;
+  counting = true;
+  playMusicSafely(); // retry autoplay gate
+
+  // show overlay
+  countOverlay.classList.add('show');
+  countOverlay.setAttribute('aria-hidden','false');
+  let sec = 10;
+  countNum.textContent = sec;
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(()=>{
+    sec -= 1;
+    if(sec <= 0){ clearInterval(countdownInterval); }
+    countNum.textContent = Math.max(sec,0);
+  }, 1000);
+
+  setTimeout(()=>{
+    // hide overlay
+    countOverlay.classList.remove('show');
+    countOverlay.setAttribute('aria-hidden','true');
+
+    // open gift and reveal
+    gift.classList.add('open');
+    if(!opened){
+      opened = true;
+      setTimeout(()=>{
+        renderGallery();
+        gallery.classList.add('show');
+        startConfetti(1200);
+      }, 600);
+    }
+  }, 10000);
+});
+
+
+    // -------- Confetti (tiny) --------
+    const c = document.getElementById('confetti');
+    const ctx = c.getContext('2d');
+    let confettiTimer;
+    function resize(){ c.width = innerWidth; c.height = innerHeight }
+    addEventListener('resize', resize); resize();
+
+    function startConfetti(ms=1200){
+      const pieces = Array.from({length: 120},()=>({
+        x: Math.random()*c.width,
+        y: -10 - Math.random()*c.height*0.3,
+        r: 4+Math.random()*4,
+        vx: -1+Math.random()*2,
+        vy: 2+Math.random()*3,
+        a: Math.random()*Math.PI
+      }));
+      const start = performance.now();
+      cancelAnimationFrame(confettiTimer);
+      (function anim(t){
+        const dt = (t - (anim._prev||t)) / 16; anim._prev = t;
+        ctx.clearRect(0,0,c.width,c.height);
+        pieces.forEach(p=>{
+          p.x += p.vx*dt; p.y += p.vy*dt; p.a += 0.1*dt;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+          ctx.fillStyle = `hsl(${(p.x+p.y)%360},90%,60%)`;
+          ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r);
+          ctx.restore();
+        });
+        confettiTimer = requestAnimationFrame(anim);
+        if(t - start > ms){ cancelAnimationFrame(confettiTimer); ctx.clearRect(0,0,c.width,c.height); }
+      })(start);
+    }
+
+    // Quality of life: Enter to submit
+    [userInput, passInput].forEach(el=> el.addEventListener('keydown', e=>{
+      if(e.key==='Enter') loginBtn.click();
+    }));
+
+    // Preload music early (without autoplay)
+    bgm.src = MUSIC_URL;
+  </script>
+</body>
+</html>
